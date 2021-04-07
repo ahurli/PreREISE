@@ -25,9 +25,12 @@ def get_Zone(Z_csv):
 
     # Create dictionary to store the mapping of states and codes
     zone_dic = {}
+    zone_dic1 = {}
     for i in range(len(zone)):
+        tu = (zone["STATE"][i], zone["REGION"][i])
         zone_dic[zone["STATE"][i]] = zone["ID"][i]
-    return zone_dic
+        zone_dic1[tu] = zone["ID"][i]
+    return zone_dic, zone_dic1
 
 West = ['WA','OR','CA','NV','AK','ID','UT','AZ','WY','CO','NM']
 Uncertain = ['MT','SD','TX']
@@ -60,7 +63,7 @@ def Getregion():
         name = (str(pla[0]).upper())
         if (name not in region):
             if(pla[8][0:3] == 'ERC'):
-                re = 'ERCOT'
+                re = 'Texas'
             elif(pla[8][0:3] == 'WEC'):
                 re = 'Western'
             else:
@@ -336,7 +339,7 @@ def Set_Sub(E_csv):
     return sub_by_coord_dict, sub_name_dict
 
 
-def Write_sub(clean_data, zone_dic, LocOfpla_dict, ZipOfpla_dict, region):
+def Write_sub(clean_data, zone_dic, zone_dic1, LocOfpla_dict, ZipOfpla_dict, region):
     """Write the data to sub.csv as output
 
     :param pandas.DataFrame clean_data: substation dataframe as returned by :func:`Clean`
@@ -346,6 +349,7 @@ def Write_sub(clean_data, zone_dic, LocOfpla_dict, ZipOfpla_dict, region):
     sub = open('output/sub.csv','w',newline='')
     csv_writer = csv.writer(sub)
     csv_writer.writerow(["sub_id","sub_name","lat","lon","zone_id","type","region"])
+    sub_code = {}
     for index, row in clean_data.iterrows():
         if(row['STATE'] in West):
             re = 'Western'
@@ -362,7 +366,7 @@ def Write_sub(clean_data, zone_dic, LocOfpla_dict, ZipOfpla_dict, region):
                 if(min_s in region):
                     re = region[min_s]
                 else:
-                    re = 'Uncertain'
+                    re = ''
             else: 
                 zi = int(row['ZIP'])
                 for i in range(-5,6):
@@ -376,14 +380,29 @@ def Write_sub(clean_data, zone_dic, LocOfpla_dict, ZipOfpla_dict, region):
                 if(min_s in region):
                     re = region[min_s]
                 else:
-                    re = 'Uncertain'
+                    re = ''
         else:
             re = 'Eastern'
-        csv_writer.writerow([row['ID'],row['NAME'],row['LATITUDE'],row['LONGITUDE'],zone_dic[row['STATE']],row['TYPE'],re])
+        if row['STATE'] == 'MT' or row['STATE'] == 'TX':
+            if re == '' and row['STATE'] == 'MT':
+                code = zone_dic1[('MT','Eastern')]
+            elif re == '' and row['STATE'] == 'TX':
+                code = zone_dic1[('TX','Texas')]
+            else:
+                code = zone_dic1[(row['STATE'],re)]
+        elif row['STATE'] == 'SD':
+            code = zone_dic1[('SD','Eastern')]
+        else:
+            code = zone_dic1[(row['STATE'], re)]
+        sub_code[row['ID']] = code
+        csv_writer.writerow([row['ID'], row['NAME'], row['LATITUDE'], row['LONGITUDE'], code, row['TYPE'], re])
+        
     sub.close()
 
+    return sub_code
 
-def Write_Bus(clean_data, zone_dic, KV_dict):
+
+def Write_Bus(clean_data, sub_code, KV_dict):
     """Write the data to bus.csv as output
 
     :param pandas.DataFrame clean_data: substation dataframe as returned by :func:`Clean`
@@ -399,7 +418,7 @@ def Write_Bus(clean_data, zone_dic, KV_dict):
             sub = (row["LATITUDE"], row["LONGITUDE"])
             if sub in KV_dict:
                 csv_writer.writerow(
-                    [row["ID"], 0, zone_dic[row["STATE"]], KV_dict[sub]]
+                    [row["ID"], 0, sub_code[row["ID"]], KV_dict[sub]]
                 )
             else:
                 missingSub.append(sub)
@@ -647,7 +666,7 @@ def DataTransform(E_csv, T_csv, Z_csv):
     :param str Z_csv: path of the zone csv file
     """
     
-    zone_dic = get_Zone(Z_csv)
+    zone_dic, zone_dic1= get_Zone(Z_csv)
 
     clean_data = Clean(E_csv, zone_dic)
 
@@ -665,8 +684,8 @@ def DataTransform(E_csv, T_csv, Z_csv):
     LocOfpla_dict, ZipOfpla_dict = ZipOfloc()
     region = Getregion()
     
-    Write_sub(clean_data, zone_dic, LocOfpla_dict, ZipOfpla_dict, region)
-    Write_Bus(clean_data, zone_dic, KV_dict)
+    sub_code = Write_sub(clean_data, zone_dic, zone_dic1, LocOfpla_dict, ZipOfpla_dict, region)
+    Write_Bus(clean_data, sub_code, KV_dict)
     Write_bus2sub(clean_data)
     Write_branch(lines)
 
