@@ -50,7 +50,10 @@ from prereise.gather.hiflddata.calculate.remap import (
     get_zone_mapping,
     get_sub_mapping
 )
-from prereise.gather.hiflddata.calculate.clean import clean_substations
+from prereise.gather.hiflddata.calculate.clean import (
+    clean_substations,
+    clean_lines
+)
 from prereise.gather.hiflddata.load_dist import compute_load_dist
 from prereise.gather.hiflddata.transmission_param import (
     kv_from_to_xperunit_calculate_4,
@@ -203,19 +206,6 @@ def neighbors(sub_by_coord_dict, sub_name_dict):
         ],
     )
     return df_lines, n_dict
-
-
-def line_from_csv(t_csv):
-    """Create dict to store all the raw transmission line csv data
-
-    :param str t_csv: path of the HIFLD transmission csv file
-    :return: (*dict*) -- a dict mapping the transmission ID to its raw parameters.
-    """
-
-    raw_data = pd.read_csv(t_csv)
-    raw_data["ID"] = raw_data["ID"].astype("str")
-    raw_lines = raw_data.set_index("ID").to_dict()
-    return raw_lines
 
 
 def meter_to_mile(dist):
@@ -894,7 +884,9 @@ def data_transform(e_csv, t_csv, z_csv):
     clean_data = clean_substations(sub_data, zone_dic)
 
     sub_by_coord_dict, sub_name_dict = get_sub_mapping(clean_data)
-    raw_lines = line_from_csv(t_csv)
+
+    line_data = load_csv(t_csv)
+    raw_lines = clean_lines(line_data)
 
     lines, n_dict = neighbors(sub_by_coord_dict, sub_name_dict)
     graph = graph_of_net(n_dict)
