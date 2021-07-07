@@ -46,7 +46,10 @@ import pandas as pd
 from powersimdata.utility.distance import haversine
 
 from prereise.gather.hiflddata.data_access.load import load_csv
-from prereise.gather.hiflddata.calculate.remap import get_zone_mapping
+from prereise.gather.hiflddata.calculate.remap import (
+    get_zone_mapping,
+    get_sub_mapping
+)
 from prereise.gather.hiflddata.calculate.clean import clean_substations
 from prereise.gather.hiflddata.load_dist import compute_load_dist
 from prereise.gather.hiflddata.transmission_param import (
@@ -327,35 +330,6 @@ def cal_kv(n_dict, graph, kv_dict, to_cal):
                 sum_kv = sum(kv_dict[nei] for nei in neighbors[depth] if nei in kv_dict)
                 kv_dict[sub] = sum_kv / count
                 break
-
-
-def set_sub(clean_data):
-    """Generate the subs
-
-    :param str E_csv: path of the HIFLD substation csv file
-    :return: (*dict*) --  sub_by_coord_dict, a dict mapping from (x, y) to substation detail.
-    :return: (*dict*) --  sub_name_dict, a dict mapping from substation name to its coordinate (x, y).
-    """
-
-    sub_by_coord_dict = {}
-    sub_name_dict = {"sub": []}
-    for index, row in clean_data.iterrows():
-        location = (row["LATITUDE"], row["LONGITUDE"])
-        if location in sub_by_coord_dict:
-            raise Exception(
-                f"WARNING: substations coordinates conflict check: {location}"
-            )
-        sub_by_coord_dict[location] = (
-            row["ID"],
-            row["NAME"],
-            row["STATE"],
-            row["COUNTY"],
-        )
-        if row["NAME"] not in sub_name_dict:
-            sub_name_dict[row["NAME"]] = []
-        sub_name_dict[row["NAME"]].append((row["LATITUDE"], row["LONGITUDE"]))
-    return sub_by_coord_dict, sub_name_dict
-
 
 def write_sub(clean_data, zone_dic, zone_dic1, region):
     """Write the data to sub.csv as output
@@ -919,7 +893,7 @@ def data_transform(e_csv, t_csv, z_csv):
     sub_data = load_csv(e_csv, dtypes={"COUNTYFIPS": str})
     clean_data = clean_substations(sub_data, zone_dic)
 
-    sub_by_coord_dict, sub_name_dict = set_sub(clean_data)
+    sub_by_coord_dict, sub_name_dict = get_sub_mapping(clean_data)
     raw_lines = line_from_csv(t_csv)
 
     lines, n_dict = neighbors(sub_by_coord_dict, sub_name_dict)
