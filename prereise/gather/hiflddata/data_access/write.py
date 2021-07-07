@@ -1,8 +1,7 @@
 import csv
 import pandas as pd
 
-West = ["WA", "OR", "CA", "NV", "AK", "ID", "UT", "AZ", "WY", "CO", "NM"]
-Uncertain = ["MT", "SD", "TX"]
+from prereise.gather.hiflddata import const
 
 def write_grid(clean_data, region, zone_dic, zone_dic1, kv_dict, lines):
     re_code, sub_code = write_sub(clean_data, zone_dic, zone_dic1, region)
@@ -20,74 +19,6 @@ def write_sub(clean_data, zone_dic, zone_dic1, region):
     :param pandas.DataFrame clean_data: substation dataframe as returned by :func:`Clean`
     :param dict zone_dic: zone dict as returned by :func:`get_Zone`
     """
-    tx_west = ["EL PASO", "HUDSPETH"]
-    tx_east = [
-        "BOWIE",
-        "MORRIS",
-        "CASS",
-        "CAMP",
-        "UPSHUR",
-        "GREGG",
-        "MARION",
-        "HARRISON",
-        "PANOLA",
-        "SHELBY",
-        "SAN AUGUSTINE",
-        "SABINE",
-        "JASPER",
-        "NEWTON",
-        "ORANGE",
-        "JEFFERSON",
-        "LIBERTY",
-        "HARDIN",
-        "TYLER",
-        "POLK",
-        "TRINITY",
-        "WALKER",
-        "SAN JACINTO",
-        "DALLAM",
-        "SHERMAN",
-        "HANSFORD",
-        "OCHLTREE" "LIPSCOMB",
-        "HARTLEY",
-        "MOORE",
-        "HUTCHINSON",
-        "HEMPHILL",
-        "RANDALL",
-        "DONLEY",
-        "PARMER",
-        "BAILEY",
-        "LAMB",
-        "HALE",
-        "COCHRAN",
-        "HOCKLEY",
-        "LUBBOCK",
-        "YOAKUM",
-        "TERRY",
-        "LYNN",
-        "GAINES",
-    ]
-
-    sd_west = ["LAWRENCE", "BUTTE", "FALL RIVER"]
-    # nm_east = ['CURRY', 'LEA', 'QUAY', 'ROOSEVELT', 'UNION']
-    mt_east = [
-        "CARTER",
-        "CUSTER",
-        "ROSEBUD",
-        "PRAIRIE",
-        "POWDER RIVER",
-        "DANIELS",
-        "MCCONE",
-        "DAWSON",
-        "RICHLAND",
-        "FALLON",
-        "GARFIELD",
-        "ROOSEVELT",
-        "PHILLIPS",
-        "SHERIDAN",
-        "VALLEY",
-        "WIBAUX",
-    ]
     sub = open("output/sub.csv", "w", newline="")
     csv_writer = csv.writer(sub)
     csv_writer.writerow(
@@ -106,24 +37,24 @@ def write_sub(clean_data, zone_dic, zone_dic1, region):
     sub_code = {}
     re_code = {}
     for index, row in clean_data.iterrows():
-        if row["STATE"] in West:
+        if row["STATE"] in const.West:
             re = "Western"
-        elif row["STATE"] in Uncertain:
+        elif row["STATE"] in const.Uncertain:
             if row["STATE"] == "TX":
-                if row["COUNTY"] in tx_west:
+                if row["COUNTY"] in const.tx_west:
                     re = "Western"
-                elif row["COUNTY"] in tx_east:
+                elif row["COUNTY"] in const.tx_east:
                     re = "Eastern"
                 else:
                     re = "Texas"
 
             elif row["STATE"] == "SD":
-                if row["COUNTY"] in sd_west:
+                if row["COUNTY"] in const.sd_west:
                     re = "Western"
                 else:
                     re = "Eastern"
             elif row["STATE"] == "MT":
-                if row["COUNTY"] in mt_east:
+                if row["COUNTY"] in const.mt_east:
                     re = "Eastern"
                 else:
                     # code = zone_dic1[(row['STATE'],re)]
