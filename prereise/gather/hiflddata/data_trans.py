@@ -45,6 +45,7 @@ import numpy as np
 import pandas as pd
 from powersimdata.utility.distance import haversine
 
+from prereise.gather.hiflddata.data_access.load import load_csv
 from prereise.gather.hiflddata.load_dist import compute_load_dist
 from prereise.gather.hiflddata.transmission_param import (
     kv_from_to_xperunit_calculate_4,
@@ -55,14 +56,12 @@ from prereise.gather.hiflddata.transmission_param import (
 )
 
 
-def get_zone(z_csv):
+def get_zone(zone):
     """Generate a dictionary of zone using the zone.csv
 
-    :param str z_csv: path of the zone.csv file
+    :param pandas.DataFrame zone: the zone.csv data
     :return: (*dict*) -- a dict mapping the STATE to its ID.
     """
-
-    zone = pd.read_csv(z_csv)
 
     # Create dictionary to store the mapping of states and codes
     zone_dic = {}
@@ -941,7 +940,8 @@ def data_transform(e_csv, t_csv, z_csv):
     :param str z_csv: path of the zone csv file
     """
 
-    zone_dic, zone_dic1 = get_zone(z_csv)
+    zone_data = load_csv(z_csv)
+    zone_dic, zone_dic1 = get_zone(zone_data)
 
     clean_data = clean(e_csv, zone_dic)
 
@@ -975,9 +975,9 @@ def data_transform(e_csv, t_csv, z_csv):
     write_branch(lines)
 
 
-if __name__ == "__main__":
-    data_transform(
-        "data/Electric_Substations.csv",
-        "data/Electric_Power_Transmission_Lines.csv",
-        "data/zone.csv",
-    )
+# if __name__ == "__main__":
+#     data_transform(
+#         "data/Electric_Substations.csv",
+#         "data/Electric_Power_Transmission_Lines.csv",
+#         "data/zone.csv",
+#     )
