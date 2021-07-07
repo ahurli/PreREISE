@@ -47,6 +47,7 @@ from powersimdata.utility.distance import haversine
 
 from prereise.gather.hiflddata.data_access.load import load_csv
 from prereise.gather.hiflddata.calculate.remap import get_zone_mapping
+from prereise.gather.hiflddata.calculate.clean import clean_substations
 from prereise.gather.hiflddata.load_dist import compute_load_dist
 from prereise.gather.hiflddata.transmission_param import (
     kv_from_to_xperunit_calculate_4,
@@ -927,7 +928,8 @@ def data_transform(e_csv, t_csv, z_csv):
     zone_data = load_csv(z_csv)
     zone_dic, zone_dic1 = get_zone_mapping(zone_data)
 
-    clean_data = clean(e_csv, zone_dic)
+    sub_data = load_csv(e_csv, dtypes={"COUNTYFIPS": str})
+    clean_data = clean_substations(sub_data, zone_dic)
 
     sub_by_coord_dict, sub_name_dict = set_sub(clean_data)
     raw_lines = line_from_csv(t_csv)
