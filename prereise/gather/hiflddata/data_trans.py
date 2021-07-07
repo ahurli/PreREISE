@@ -79,18 +79,6 @@ def get_region():
             region[name] = re
     return region
 
-
-def clean(e_csv, zone_dic):
-    """Clean data; remove substations which are outside the United States or not available.
-    :param str e_csv: path of the HIFLD substation csv file
-    :param dict zone_dic: zone dict as returned by :func:`get_zone`
-    :return: (*pandas.DataFrame*) -- a pandas Dataframe storing the substations after dropping the invalid ones.
-    """
-    return pd.read_csv(e_csv, dtype={"COUNTYFIPS": str}).query(
-        "STATE in @zone_dic and LINES != 0"
-    )
-
-
 def neighbors(sub_by_coord_dict, sub_name_dict):
     """Create dict to store the neighbors of each substation based on transmission topology geojson from HIFLD
     :param dict sub_by_coord_dict: dict mapping the (x, y) to a substation (sub id and sub name)
