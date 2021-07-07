@@ -1,7 +1,9 @@
 import csv
+
 import pandas as pd
 
 from prereise.gather.hiflddata import const
+
 
 def write_grid(clean_data, region, zone_dic, zone_dic1, kv_dict, lines):
     re_code, sub_code = write_sub(clean_data, zone_dic, zone_dic1, region)
@@ -11,7 +13,7 @@ def write_grid(clean_data, region, zone_dic, zone_dic1, kv_dict, lines):
         lambda row: re_code.get(row["from_bus_id"]), axis=1
     )
     write_branch(lines)
-    
+
 
 def write_sub(clean_data, zone_dic, zone_dic1, region):
     """Write the data to sub.csv as output
@@ -82,7 +84,8 @@ def write_sub(clean_data, zone_dic, zone_dic1, region):
     sub.close()
 
     return re_code, sub_code
-    
+
+
 def write_bus(clean_data, sub_code, re_code, kv_dict):
     """Write the data to bus.csv as output
 
@@ -152,6 +155,7 @@ def write_bus(clean_data, sub_code, re_code, kv_dict):
         " substations excluded from the network. Some examples:",
     )
     print(missing_sub[:20])
+
 
 def write_bus2sub(clean_data, re_code):
     """Write the data to bus2sub.csv as output
@@ -358,4 +362,3 @@ def write_branch(lines):
                     row["interconnect"]
                 ])
 """
-    

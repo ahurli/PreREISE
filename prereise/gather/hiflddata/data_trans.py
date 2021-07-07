@@ -45,16 +45,10 @@ import numpy as np
 import pandas as pd
 from powersimdata.utility.distance import haversine
 
+from prereise.gather.hiflddata.calculate.clean import clean_lines, clean_substations
+from prereise.gather.hiflddata.calculate.remap import get_sub_mapping, get_zone_mapping
 from prereise.gather.hiflddata.data_access.load import load_csv
 from prereise.gather.hiflddata.data_access.write import write_grid
-from prereise.gather.hiflddata.calculate.remap import (
-    get_zone_mapping,
-    get_sub_mapping
-)
-from prereise.gather.hiflddata.calculate.clean import (
-    clean_substations,
-    clean_lines
-)
 from prereise.gather.hiflddata.load_dist import compute_load_dist
 from prereise.gather.hiflddata.transmission_param import (
     kv_from_to_xperunit_calculate_4,
@@ -81,6 +75,7 @@ def get_region():
                 re = "Eastern"
             region[name] = re
     return region
+
 
 def neighbors(sub_by_coord_dict, sub_name_dict):
     """Create dict to store the neighbors of each substation based on transmission topology geojson from HIFLD
@@ -317,11 +312,6 @@ def cal_kv(n_dict, graph, kv_dict, to_cal):
                 sum_kv = sum(kv_dict[nei] for nei in neighbors[depth] if nei in kv_dict)
                 kv_dict[sub] = sum_kv / count
                 break
-
-
-
-
-
 
 
 def compute_reactance_and_type(line_type, kv_from, kv_to, dist, vol):
